@@ -6,6 +6,7 @@ from gi.repository import Gtk, GLib
 import subprocess
 import threading
 import webbrowser
+import os
 
 class XAMPPControl(Gtk.Window):
     def __init__(self):
@@ -103,6 +104,12 @@ class XAMPPControl(Gtk.Window):
         self.create_button(tools_btn_box2, "Control Panel", "panel")
         tools_box.pack_start(tools_btn_box2, False, False, 0)
         
+        tools_btn_box3 = Gtk.Box(spacing=5)
+        manager_btn = Gtk.Button(label="XAMPP Manager GUI")
+        manager_btn.connect("clicked", self.on_manager_clicked)
+        tools_btn_box3.pack_start(manager_btn, True, True, 0)
+        tools_box.pack_start(tools_btn_box3, False, False, 0)
+        
         vbox.pack_start(tools_frame, False, False, 0)
         
         # Web Access Section
@@ -177,12 +184,52 @@ class XAMPPControl(Gtk.Window):
             self.append_output(f"✓ Browser opened successfully\n")
         except Exception as e:
             self.append_output(f"✗ Error opening browser: {e}\n")
+    
+    def on_manager_clicked(self, widget):
+        self.statusbar.push(self.context_id, "Launching XAMPP Manager GUI")
+        self.append_output(f"\n==> Launching XAMPP Manager GUI\n")
+        
+        # Run manager in thread to avoid blocking UI
+        thread = threading.Thread(target=self.run_manager)
+        thread.daemon = True
+        thread.start()
+    
+    def run_manager(self):
+        try:
+            manager_path = "/opt/lampp/manager-linux-x64.run"
+            # Check if manager exists
+            if not os.path.exists(manager_path):
+                GLib.idle_add(self.append_output, f"✗ XAMPP Manager not found at {manager_path}\n")
+                GLib.idle_add(self.statusbar.push, self.context_id, "Manager not found")
+                return
+            
+            # Run manager with pkexec for proper permissions
+            process = subprocess.Popen(
+                ['pkexec', manager_path],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True
+            )
+            
+            GLib.idle_add(self.append_output, f"✓ XAMPP Manager launched successfully\n")
+            GLib.idle_add(self.statusbar.push, self.context_id, "Manager launched")
+            
+        except Exception as e:
+            GLib.idle_add(self.append_output, f"✗ Error launching manager: {e}\n")
+            GLib.idle_add(self.statusbar.push, self.context_id, "Manager launch failed")
 
     def run_command(self, command):
         try:
             # Run xampp command with sudo (will prompt for password if needed)
+            xampp_path = '/opt/lampp/xampp'
+            
+            # Check if XAMPP is installed
+            if not os.path.exists(xampp_path):
+                GLib.idle_add(self.command_error, f"XAMPP not found at {xampp_path}. Please install XAMPP first.", command)
+                return
+            
             process = subprocess.Popen(
-                ['pkexec', 'xampp', command],
+                ['pkexec', xampp_path, command],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 universal_newlines=True

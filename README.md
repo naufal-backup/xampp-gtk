@@ -1,14 +1,19 @@
-# XAMPP GTK Control Panel
+# XAMPP Control Panel (GTK & Qt)
 
-Aplikasi GUI berbasis GTK3 untuk mengelola XAMPP di Linux dengan antarmuka yang intuitif dan mudah digunakan.
+Aplikasi GUI berbasis GTK3 dan PyQt6 untuk mengelola XAMPP di Linux dengan antarmuka yang intuitif dan mudah digunakan.
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue.svg)
 ![GTK](https://img.shields.io/badge/GTK-3.0-green.svg)
+![Qt](https://img.shields.io/badge/Qt-6-brightgreen.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 ## 📋 Deskripsi
 
-XAMPP GTK Control Panel adalah aplikasi desktop yang menyediakan antarmuka grafis untuk mengelola layanan XAMPP (Apache, MySQL, ProFTPD) di Linux. Aplikasi ini menggantikan command line dengan GUI yang user-friendly, memudahkan developer dalam mengelola web server lokal mereka.
+XAMPP Control Panel adalah aplikasi desktop yang menyediakan antarmuka grafis untuk mengelola layanan XAMPP (Apache, MySQL, ProFTPD) di Linux. Aplikasi ini menggantikan command line dengan GUI yang user-friendly, memudahkan developer dalam mengelola web server lokal mereka.
+
+**Tersedia dalam 2 versi:**
+- **GTK Version** (`xampp.py`) - Native GNOME/GTK interface
+- **Qt Version** (`xampp_qt.py`) - Modern Qt6 interface (cross-platform)
 
 ## ✨ Fitur
 
@@ -24,6 +29,7 @@ XAMPP GTK Control Panel adalah aplikasi desktop yang menyediakan antarmuka grafi
 - **Backup**: Backup konfigurasi dan data
 - **Enable OCI8**: Aktifkan Oracle Database extension
 - **Control Panel**: Akses control panel XAMPP
+- **XAMPP Manager GUI**: Luncurkan native XAMPP Manager
 
 ### 🌐 Akses Web
 Tombol cepat untuk membuka:
@@ -41,11 +47,13 @@ Tombol cepat untuk membuka:
 ### Persyaratan Sistem
 - Linux (Ubuntu, Debian, Fedora, atau distro lain)
 - Python 3.x
-- GTK 3.0
+- GTK 3.0 (untuk versi GTK) atau PyQt6 (untuk versi Qt)
 - XAMPP terinstal
 - PolicyKit (untuk privilege escalation)
 
 ### Instalasi Dependensi
+
+#### Versi GTK (xampp.py)
 
 **Ubuntu/Debian:**
 ```bash
@@ -62,6 +70,31 @@ sudo dnf install python3 python3-gobject gtk3 polkit
 ```bash
 sudo pacman -S python python-gobject gtk3 polkit
 ```
+
+#### Versi Qt (xampp_qt.py)
+
+**Ubuntu/Debian:**
+```bash
+sudo apt update
+sudo apt install python3-pyqt6 policykit-1
+```
+
+Atau menggunakan pip:
+```bash
+pip install PyQt6
+```
+
+**Fedora:**
+```bash
+sudo dnf install python3-qt6 polkit
+```
+
+**Arch Linux:**
+```bash
+sudo pacman -S python-pyqt6 polkit
+```
+
+> 💡 **Tip**: Lihat [INSTALL_QT.md](INSTALL_QT.md) untuk panduan lengkap instalasi versi Qt.
 
 ### Instalasi XAMPP
 Jika belum memiliki XAMPP, download dan install dari [Apache Friends](https://www.apachefriends.org/):
@@ -88,14 +121,22 @@ cd xampp-gtk
 ```
 
 2. Jalankan aplikasi:
+
+**Versi GTK:**
 ```bash
 python3 xampp.py
 ```
 
+**Versi Qt:**
+```bash
+python3 xampp_qt.py
+```
+
 Atau buat executable:
 ```bash
-chmod +x xampp.py
-./xampp.py
+chmod +x xampp.py xampp_qt.py
+./xampp.py      # GTK version
+./xampp_qt.py   # Qt version
 ```
 
 ### Penggunaan
