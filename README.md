@@ -1,9 +1,9 @@
 # XAMPP Control Panel (GTK & Qt)
 
-Aplikasi GUI berbasis GTK3 dan PyQt6 untuk mengelola XAMPP di Linux dengan antarmuka yang intuitif dan mudah digunakan.
+Aplikasi GUI berbasis GTK4 dan PyQt6 untuk mengelola XAMPP di Linux dengan antarmuka yang intuitif dan mudah digunakan.
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue.svg)
-![GTK](https://img.shields.io/badge/GTK-3.0-green.svg)
+![GTK](https://img.shields.io/badge/GTK-4.0-green.svg)
 ![Qt](https://img.shields.io/badge/Qt-6-brightgreen.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
@@ -58,17 +58,17 @@ Tombol cepat untuk membuka:
 **Ubuntu/Debian:**
 ```bash
 sudo apt update
-sudo apt install python3 python3-gi gir1.2-gtk-3.0 policykit-1
+sudo apt install python3 python3-gi gir1.2-gtk-4.0 policykit-1
 ```
 
 **Fedora:**
 ```bash
-sudo dnf install python3 python3-gobject gtk3 polkit
+sudo dnf install python3 python3-gobject gtk4 polkit
 ```
 
 **Arch Linux:**
 ```bash
-sudo pacman -S python python-gobject gtk3 polkit
+sudo pacman -S python python-gobject gtk4 polkit
 ```
 
 #### Versi Qt (xampp_qt.py)
