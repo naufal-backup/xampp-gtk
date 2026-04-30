@@ -51,7 +51,18 @@ Tombol cepat untuk membuka:
 - XAMPP terinstal
 - PolicyKit (untuk privilege escalation)
 
-### Instalasi Dependensi
+### Instalasi Cepat (Rekomendasi)
+
+Gunakan script installer untuk menginstal semua dependensi, menyalin file ke `/opt`, dan membuat shortcut di menu aplikasi:
+
+```bash
+chmod +x install.sh
+./install.sh
+```
+
+Installer akan memberikan opsi untuk menginstal versi GTK (Gnome), Qt (KDE), atau keduanya.
+
+### Instalasi Dependensi Manual
 
 #### Versi GTK (xampp.py)
 

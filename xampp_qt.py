@@ -92,6 +92,7 @@ class ManagerThread(QThread):
 class XAMPPControlQt(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.setWindowIcon(QIcon.fromTheme("xampp"))
         self.init_ui()
         self.current_thread = None
         
