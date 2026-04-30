@@ -7,11 +7,33 @@ import subprocess
 import threading
 import webbrowser
 import os
+import json
+from pathlib import Path
 
 class XAMPPControl(Gtk.Window):
     def __init__(self):
-        super().__init__(title="XAMPP Control Panel")
-        self.set_default_size(600, 500)
+        super().__init__()
+        self.set_default_size(600, 650)
+        self.set_icon_name("xampp")
+        
+        # Config path
+        self.config_dir = os.path.join(str(Path.home()), ".config", "xampp-control")
+        self.config_file = os.path.join(self.config_dir, "settings.json")
+        
+        # Header Bar
+        hb = Gtk.HeaderBar()
+        self.set_titlebar(hb)
+        self.set_title("XAMPP Control Panel")
+        
+        # Dark Mode Toggle
+        self.dark_mode_btn = Gtk.ToggleButton()
+        self.dark_mode_btn.set_icon_name("display-brightness-symbolic")
+        self.dark_mode_btn.set_tooltip_text("Toggle Dark Mode")
+        self.dark_mode_btn.connect("toggled", self.on_dark_mode_toggled)
+        hb.pack_end(self.dark_mode_btn)
+        
+        # Load settings
+        self.load_settings()
         
         # Main container
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
@@ -20,19 +42,6 @@ class XAMPPControl(Gtk.Window):
         vbox.set_margin_start(10)
         vbox.set_margin_end(10)
         self.set_child(vbox)
-        
-        # Title
-        title = Gtk.Label()
-        title.set_markup("<b><big>XAMPP Control Panel</big></b>")
-        title.set_margin_top(5)
-        title.set_margin_bottom(5)
-        vbox.append(title)
-        
-        # Separator
-        separator1 = Gtk.Separator()
-        separator1.set_margin_top(5)
-        separator1.set_margin_bottom(5)
-        vbox.append(separator1)
         
         # Service Control Section
         service_frame = Gtk.Frame(label="Service Control")
@@ -162,6 +171,7 @@ class XAMPPControl(Gtk.Window):
         self.output_text = Gtk.TextView()
         self.output_text.set_editable(False)
         self.output_text.set_wrap_mode(Gtk.WrapMode.WORD)
+        self.output_text.set_monospace(True)
         self.output_buffer = self.output_text.get_buffer()
         
         output_scroll.set_child(self.output_text)
@@ -180,10 +190,47 @@ class XAMPPControl(Gtk.Window):
         self.append_output("XAMPP Control Panel Ready\n")
         self.update_status("Ready")
 
+    def load_settings(self):
+        if os.path.exists(self.config_file):
+            try:
+                with open(self.config_file, "r") as f:
+                    settings_data = json.load(f)
+                    is_dark = settings_data.get("dark_mode", False)
+                    self.dark_mode_btn.set_active(is_dark)
+                    # Manually apply because on_dark_mode_toggled might not fire if state is same
+                    self.apply_dark_mode(is_dark)
+            except Exception as e:
+                print(f"Error loading settings: {e}")
+
+    def save_settings(self):
+        if not os.path.exists(self.config_dir):
+            os.makedirs(self.config_dir)
+        try:
+            with open(self.config_file, "w") as f:
+                json.dump({"dark_mode": self.dark_mode_btn.get_active()}, f)
+        except Exception as e:
+            print(f"Error saving settings: {e}")
+
+    def on_dark_mode_toggled(self, widget):
+        is_dark = widget.get_active()
+        self.apply_dark_mode(is_dark)
+        self.save_settings()
+
+    def apply_dark_mode(self, is_dark):
+        settings = Gtk.Settings.get_default()
+        settings.set_property("gtk-application-prefer-dark-theme", is_dark)
+        
     def create_button(self, container, label, command):
         btn = Gtk.Button(label=label)
         btn.connect("clicked", self.on_command_clicked, command)
         btn.set_hexpand(True)
+        
+        # Add style classes for better visual feedback
+        if "start" in label.lower():
+            btn.add_css_class("suggested-action")
+        elif "stop" in label.lower():
+            btn.add_css_class("destructive-action")
+            
         container.append(btn)
         return btn
     

@@ -2,14 +2,16 @@
 
 import sys
 import os
+import json
 import subprocess
 import webbrowser
+from pathlib import Path
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QTextEdit, QLabel, QGroupBox, QStatusBar, QMessageBox
 )
 from PyQt6.QtCore import QThread, pyqtSignal, Qt
-from PyQt6.QtGui import QFont, QIcon
+from PyQt6.QtGui import QFont, QIcon, QPalette, QColor
 
 
 class CommandThread(QThread):
@@ -92,13 +94,41 @@ class ManagerThread(QThread):
 class XAMPPControlQt(QMainWindow):
     def __init__(self):
         super().__init__()
+        
+        # Config path
+        self.config_dir = os.path.join(str(Path.home()), ".config", "xampp-control")
+        self.config_file = os.path.join(self.config_dir, "settings.json")
+        
         self.setWindowIcon(QIcon.fromTheme("xampp"))
         self.init_ui()
         self.current_thread = None
         
+        # Load settings
+        self.load_settings()
+
+    def load_settings(self):
+        if os.path.exists(self.config_file):
+            try:
+                with open(self.config_file, "r") as f:
+                    settings_data = json.load(f)
+                    is_dark = settings_data.get("dark_mode", False)
+                    self.dark_mode_btn.setChecked(is_dark)
+                    self.on_dark_mode_toggled(is_dark)
+            except Exception as e:
+                print(f"Error loading settings: {e}")
+
+    def save_settings(self):
+        if not os.path.exists(self.config_dir):
+            os.makedirs(self.config_dir)
+        try:
+            with open(self.config_file, "w") as f:
+                json.dump({"dark_mode": self.dark_mode_btn.isChecked()}, f)
+        except Exception as e:
+            print(f"Error saving settings: {e}")
+
     def init_ui(self):
         self.setWindowTitle("XAMPP Control Panel (Qt)")
-        self.setGeometry(100, 100, 700, 600)
+        self.setGeometry(100, 100, 700, 650)
         
         # Central widget
         central_widget = QWidget()
@@ -106,20 +136,14 @@ class XAMPPControlQt(QMainWindow):
         
         # Main layout
         main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(15, 15, 15, 15)
+        main_layout.setSpacing(10)
         central_widget.setLayout(main_layout)
-        
-        # Title
-        title = QLabel("XAMPP Control Panel")
-        title_font = QFont()
-        title_font.setPointSize(16)
-        title_font.setBold(True)
-        title.setFont(title_font)
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(title)
         
         # Service Control Section
         service_group = QGroupBox("Service Control")
         service_layout = QVBoxLayout()
+        service_layout.setSpacing(8)
         
         # All Services
         all_label = QLabel("All Services:")
@@ -191,6 +215,13 @@ class XAMPPControlQt(QMainWindow):
         manager_btn = QPushButton("XAMPP Manager GUI")
         manager_btn.clicked.connect(self.on_manager_clicked)
         tools_row3.addWidget(manager_btn)
+        
+        # Dark Mode Switcher
+        self.dark_mode_btn = QPushButton("Dark Mode: Off")
+        self.dark_mode_btn.setCheckable(True)
+        self.dark_mode_btn.toggled.connect(self.on_dark_mode_toggled)
+        tools_row3.addWidget(self.dark_mode_btn)
+        
         tools_layout.addLayout(tools_row3)
         
         tools_group.setLayout(tools_layout)
@@ -214,6 +245,7 @@ class XAMPPControlQt(QMainWindow):
         self.output_text = QTextEdit()
         self.output_text.setReadOnly(True)
         self.output_text.setMinimumHeight(150)
+        self.output_text.setFontFamily("monospace")
         output_layout.addWidget(self.output_text)
         
         output_group.setLayout(output_layout)
@@ -281,6 +313,35 @@ class XAMPPControlQt(QMainWindow):
         manager_thread.error_signal.connect(self.append_output)
         manager_thread.start()
     
+    def on_dark_mode_toggled(self, checked):
+        """Toggle between Dark and Light mode"""
+        app = QApplication.instance()
+        if checked:
+            self.dark_mode_btn.setText("Dark Mode: On")
+            
+            # Create a dark palette
+            dark_palette = QPalette()
+            dark_palette.setColor(QPalette.ColorRole.Window, QColor(53, 53, 53))
+            dark_palette.setColor(QPalette.ColorRole.WindowText, Qt.GlobalColor.white)
+            dark_palette.setColor(QPalette.ColorRole.Base, QColor(25, 25, 25))
+            dark_palette.setColor(QPalette.ColorRole.AlternateBase, QColor(53, 53, 53))
+            dark_palette.setColor(QPalette.ColorRole.ToolTipBase, Qt.GlobalColor.white)
+            dark_palette.setColor(QPalette.ColorRole.ToolTipText, Qt.GlobalColor.white)
+            dark_palette.setColor(QPalette.ColorRole.Text, Qt.GlobalColor.white)
+            dark_palette.setColor(QPalette.ColorRole.Button, QColor(53, 53, 53))
+            dark_palette.setColor(QPalette.ColorRole.ButtonText, Qt.GlobalColor.white)
+            dark_palette.setColor(QPalette.ColorRole.BrightText, Qt.GlobalColor.red)
+            dark_palette.setColor(QPalette.ColorRole.Link, QColor(42, 130, 218))
+            dark_palette.setColor(QPalette.ColorRole.Highlight, QColor(42, 130, 218))
+            dark_palette.setColor(QPalette.ColorRole.HighlightedText, Qt.GlobalColor.black)
+            
+            app.setPalette(dark_palette)
+        else:
+            self.dark_mode_btn.setText("Dark Mode: Off")
+            app.setPalette(app.style().standardPalette())
+        
+        self.save_settings()
+
     def command_finished(self, returncode, command):
         """Handle command completion"""
         if returncode == 0:
@@ -297,8 +358,7 @@ class XAMPPControlQt(QMainWindow):
 def main():
     app = QApplication(sys.argv)
     
-    # Set application style (optional)
-    app.setStyle('Fusion')
+    # Let the application use the system default style for better theme integration
     
     window = XAMPPControlQt()
     window.show()
